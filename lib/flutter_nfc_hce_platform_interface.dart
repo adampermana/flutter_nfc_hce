@@ -28,10 +28,11 @@ abstract class FlutterNfcHcePlatform extends PlatformInterface {
   }
 
   Future<String?> startNfcHce(
-      String content,
-      String mimeType,
-      bool persistMessage,
-      ) {
+    String content,
+    String mimeType,
+    bool persistMessage,
+    bool iso7816Mode,
+  ) {
     throw UnimplementedError('startNfcHce() has not been implemented.');
   }
 
