@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.nfc.NdefMessage
 import android.nfc.NdefRecord
 import android.nfc.cardemulation.HostApduService
@@ -296,6 +297,12 @@ class KHostApduService : HostApduService() {
         Log.i(TAG, "createNdefRecord(): $content")
 
         if(mimeType == "text/plain") {
+            if(content.startsWith("http")) {
+                val uri = Uri.parse(content);
+
+                return NdefRecord.createUri(uri);
+            }
+
             return createTextRecord("en", content, id);
         }
 
