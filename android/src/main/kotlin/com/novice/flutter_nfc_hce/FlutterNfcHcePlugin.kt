@@ -37,9 +37,10 @@ class FlutterNfcHcePlugin: FlutterPlugin, MethodCallHandler, ActivityAware  {
                 val content = call.argument<String>("content")
                 val mimeType = call.argument<String>("mimeType")
                 val persistMessage = call.argument<Boolean>("persistMessage")
+                val iso7816Mode = call.argument<Boolean>("iso7816Mode") ?: false
 
                 if (content != null && mimeType != null && persistMessage != null) {
-                    startNfcHce(content, mimeType, persistMessage)
+                    startNfcHce(content, mimeType, persistMessage, iso7816Mode)
                     result.success("success")
                 } else {
                     result.success("failure")
@@ -50,25 +51,16 @@ class FlutterNfcHcePlugin: FlutterPlugin, MethodCallHandler, ActivityAware  {
                 result.success("success")
             }
             "isNfcHceSupported" -> {
-                if (isNfcHceSupported()) {
-                    result.success("true")
-                } else {
-                    result.success("false")
-                }
+                result.success(if (isNfcHceSupported()) "true" else "false")
             }
             "isSecureNfcEnabled" -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && isSecureNfcEnabled()) {
-                    result.success("true")
-                } else {
-                    result.success("false")
-                }
+                result.success(
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && isSecureNfcEnabled()) 
+                        "true" else "false"
+                )
             }
             "isNfcEnabled" -> {
-                if (isNfcEnabled()) {
-                    result.success("true")
-                } else {
-                    result.success("false")
-                }
+                result.success(if (isNfcEnabled()) "true" else "false")
             }
             else -> {
                 result.notImplemented()
@@ -99,12 +91,13 @@ class FlutterNfcHcePlugin: FlutterPlugin, MethodCallHandler, ActivityAware  {
         activity = null
         mNfcAdapter = null
     }
-    private fun startNfcHce(content: String, mimeType: String, persistMessage: Boolean) {
+    private fun startNfcHce(content: String, mimeType: String, persistMessage: Boolean, iso7816Mode: Boolean) {
         if (isNfcHceSupported()) {
-            Log.i("TEST", "---------------------->isNfcHceSupported: " + isNfcHceSupported())
-            initService(content, mimeType, persistMessage)
+            Log.i("NfcHce", "Starting HCE service with ISO7816 mode: $iso7816Mode")
+            initService(content, mimeType, persistMessage, iso7816Mode)
         }
     }
+
     private fun stopNfcHce() {
         val intent = Intent(activity, KHostApduService::class.java)
         activity?.stopService(intent)
@@ -121,11 +114,12 @@ class FlutterNfcHcePlugin: FlutterPlugin, MethodCallHandler, ActivityAware  {
         return mNfcAdapter?.isSecureNfcEnabled == true
     }
 
-    private fun initService(content: String, mimeType: String, persistMessage: Boolean) {
+    private fun initService(content: String, mimeType: String, persistMessage: Boolean, iso7816Mode: Boolean) {
         val intent = Intent(activity, KHostApduService::class.java)
         intent.putExtra("content", content)
         intent.putExtra("mimeType", mimeType)
         intent.putExtra("persistMessage", persistMessage)
+        intent.putExtra("iso7816Mode", iso7816Mode)
         activity?.startService(intent)
     }
 
